@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemie-Reaktionssimulator mit Lewis-Formeln</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        h1 {
+            color: #1565c0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: #546e7a;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .selection {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .molecule {
+            text-align: center;
+            padding: 25px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 45%;
+            background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .molecule::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: #42a5f5;
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .molecule:hover {
+            border-color: #42a5f5;
+            transform: translateY(-10px);
+            box-shadow: 0 15px 25px rgba(66, 165, 245, 0.2);
+        }
+        
+        .molecule:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .molecule.selected {
+            border-color: #4caf50;
+            background: linear-gradient(to bottom, #f1f8e9 0%, #e8f5e9 100%);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.2);
+        }
+        
+        .molecule.selected::before {
+            background: #4caf50;
+            transform: scaleX(1);
+        }
+        
+        .name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1565c0;
+        }
+        
+        .formula {
+            font-size: 1.5rem;
+            margin: 15px 0;
+            color: #0d47a1;
+            font-weight: bold;
+            background-color: #e3f2fd;
+            padding: 8px 15px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        
+        .lewis-container {
+            margin: 25px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            min-height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lewis-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #42a5f5, #4caf50);
+            transform: scaleX(0);
+            transition: transform 0.5s;
+        }
+        
+        .molecule.selected .lewis-container::after {
+            transform: scaleX(1);
+        }
+        
+        .reaction-area {
+            margin: 40px 0;
+            padding: 35px;
+            border: 2px dashed #90a4ae;
+            border-radius: 15px;
+            min-height: 300px;
+            text-align: center;
+            background-color: #fafafa;
+            transition: all 0.3s;
+        }
+        
+        .reaction-area.active {
+            border-color: #42a5f5;
+            background-color: #e3f2fd;
+        }
+        
+        .chemical-formula {
+            font-size: 1.8rem;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #0d47a1;
+        }
+        
+        .reaction-arrow {
+            font-size: 2.5rem;
+            margin: 25px 0;
+            color: #e53935;
+            font-weight: bold;
+        }
+        
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .button {
+            background: linear-gradient(to right, #42a5f5, #1976d2);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin: 0 15px;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(66, 165, 245, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(66, 165, 245, 0.6);
+        }
+        
+        .button:active::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        .button:disabled {
+            background: linear-gradient(to right, #bdbdbd, #9e9e9e);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .button.reset {
+            background: linear-gradient(to right, #ef5350, #e53935);
+            box-shadow: 0 4px 15px rgba(239, 83, 80, 0.4);
+        }
+        
+        .button.reset:hover {
+            box-shadow: 0 7px 20px rgba(239, 83, 80, 0.6);
+        }
+        
+        .explanation {
+            margin-top: 40px;
+            padding: 30px;
+            background: linear-gradient(to right, #f5f5f5, #eeeeee);
+            border-radius: 15px;
+            display: none;
+            border-left: 6px solid #42a5f5;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .explanation h3 {
+            color: #1565c0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        .success {
+            color: #2e7d32;
+            border-left-color: #4caf50;
+        }
+        
+        .failure {
+            color: #c62828;
+            border-left-color: #f44336;
+        }
+        
+        .atom {
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .bond {
+            stroke: #37474f;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+        
+        .bond-double {
+            stroke: #37474f;
+            stroke-width: 2;
+        }
+        
+        .bond-aromatic {
+            stroke: #37474f;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+        }
+        
+        .electron {
+            fill: #1565c0;
+        }
+        
+        .oxygen {
+            fill: #d32f2f;
+        }
+        
+        .hydrogen {
+            fill: #1976d2;
+        }
+        
+        .carbon {
+            fill: #212121;
+        }
+        
+        .sodium {
+            fill: #ff8f00;
+        }
+        
+        .charge {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .negative {
+            fill: #d32f2f;
+        }
+        
+        .positive {
+            fill: #1976d2;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        
+        .reaction-products {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .product {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .product-name {
+            font-weight: bold;
+            margin-top: 15px;
+            color: #37474f;
+        }
+        
+        @media (max-width: 900px) {
+            .molecule {
+                width: 100%;
+            }
+            
+            .selection {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Chemie-Reaktionssimulator mit Lewis-Formeln</h1>
+            <p class="subtitle">Wähle eine Verbindung und füge NaOH hinzu, um die Reaktion zu beobachten. Entdecke den Unterschied zwischen Phenol und Ethanol!</p>
+        </header>
+        
+        <div class="selection">
+            <div class="molecule" id="phenol">
+                <div class="name">Phenol</div>
+                <div class="formula">C₆H₅OH</div>
+                <div class="lewis-container">
+                    <svg width="320" height="240" viewBox="0 0 320 240">
+                        <!-- Benzolring mit aromatischem System -->
+                        <circle cx="160" cy="120" r="50" fill="none" stroke="#37474f" stroke-width="2" stroke-dasharray="6,6"/>
+                        
+                        <!-- Kohlenstoffatome -->
+                        <text x="110" y="120" class="atom carbon">C</text>
+                        <text x="135" y="80" class="atom carbon">C</text>
+                        <text x="185" y="80" class="atom carbon">C</text>
+                        <text x="210" y="120" class="atom carbon">C</text>
+                        <text x="185" y="160" class="atom carbon">C</text>
+                        <text x="135" y="160" class="atom carbon">C</text>
+                        
+                        <!-- Einfache C-H Bindungen -->
+                        <line x1="105" y1="120" x2="90" y2="120" class="bond"/>
+                        <line x1="135" y1="75" x2="135" y2="60" class="bond"/>
+                        <line x1="185" y1="75" x2="185" y2="60" class="bond"/>
+                        <line x1="215" y1="120" x2="230" y2="120" class="bond"/>
+                        <line x1="185" y1="165" x2="185" y2="180" class="bond"/>
+                        
+                        <!-- Wasserstoffatome -->
+                        <text x="80" y="120" class="atom hydrogen">H</text>
+                        <text x="135" y="50" class="atom hydrogen">H</text>
+                        <text x="185" y="50" class="atom hydrogen">H</text>
+                        <text x="240" y="120" class="atom hydrogen">H</text>
+                        <text x="185" y="190" class="atom hydrogen">H</text>
+                        
+                        <!-- OH-Gruppe -->
+                        <line x1="135" y1="160" x2="135" y2="175" class="bond"/>
+                        <text x="135" y="190" class="atom oxygen">O</text>
+                        <line x1="135" y1="195" x2="135" y2="210" class="bond"/>
+                        <text x="135" y="220" class="atom hydrogen">H</text>
+                        
+                        <!-- Elektronenpaare am Sauerstoff -->
+                        <circle cx="125" y="185" r="3" class="electron"/>
+                        <circle cx="145" y="185" r="3" class="electron"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="molecule" id="ethanol">
+                <div class="name">Ethanol</div>
+                <div class="formula">C₂H₅OH</div>
+                <div class="lewis-container">
+                    <svg width="320" height="240" viewBox="0 0 320 240">
+                        <!-- Kohlenstoffkette -->
+                        <text x="120" y="120" class="atom carbon">C</text>
+                        <text x="170" y="120" class="atom carbon">C</text>
+                        
+                        <!-- C-C Bindung -->
+                        <line x1="135" y1="120" x2="155" y2="120" class="bond"/>
+                        
+                        <!-- CH3-Gruppe (erster Kohlenstoff) -->
+                        <line x1="115" y1="110" x2="100" y2="100" class="bond"/>
+                        <text x="90" y="95" class="atom hydrogen">H</text>
+                        
+                        <line x1="115" y1="130" x2="100" y2="140" class="bond"/>
+                        <text x="90" y="145" class="atom hydrogen">H</text>
+                        
+                        <line x1="125" y1="135" x2="125" y2="155" class="bond"/>
+                        <text x="125" y="165" class="atom hydrogen">H</text>
+                        
+                        <!-- CH2-Gruppe (zweiter Kohlenstoff) -->
+                        <line x1="170" y1="110" x2="170" y2="95" class="bond"/>
+                        <text x="170" y="85" class="atom hydrogen">H</text>
+                        
+                        <line x1="170" y1="130" x2="170" y2="145" class="bond"/>
+                        <text x="170" y="155" class="atom hydrogen">H</text>
+                        
+                        <!-- OH-Gruppe -->
+                        <line x1="185" y1="120" x2="205" y2="120" class="bond"/>
+                        <text x="215" y="120" class="atom oxygen">O</text>
+                        <line x1="220" y1="120" x2="235" y2="120" class="bond"/>
+                        <text x="245" y="120" class="atom hydrogen">H</text>
+                        
+                        <!-- Elektronenpaare am Sauerstoff -->
+                        <circle cx="210" y="110" r="3" class="electron"/>
+                        <circle cx="210" y="130" r="3" class="electron"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="reaction-area" id="reactionArea">
+            <p style="font-size: 1.2rem; color: #546e7a;">Wähle eine Verbindung aus, um die Reaktion mit NaOH zu starten</p>
+        </div>
+        
+        <div class="button-container">
+            <button class="button" id="addNaOH" disabled>NaOH hinzufügen</button>
+            <button class="button reset" id="reset">Neustart</button>
+        </div>
+        
+        <div class="explanation" id="explanation">
+            <h3>Erklärung:</h3>
+            <p id="explanationText"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const phenol = document.getElementById('phenol');
+            const ethanol = document.getElementById('ethanol');
+            const reactionArea = document.getElementById('reactionArea');
+            const addNaOHButton = document.getElementById('addNaOH');
+            const resetButton = document.getElementById('reset');
+            const explanation = document.getElementById('explanation');
+            const explanationText = document.getElementById('explanationText');
+            
+            let selectedMolecule = null;
+            
+            // Molekülauswahl
+            phenol.addEventListener('click', function() {
+                selectMolecule('phenol');
+            });
+            
+            ethanol.addEventListener('click', function() {
+                selectMolecule('ethanol');
+            });
+            
+            function selectMolecule(molecule) {
+                // Zurücksetzen der vorherigen Auswahl
+                phenol.classList.remove('selected');
+                ethanol.classList.remove('selected');
+                
+                // Neue Auswahl setzen
+                selectedMolecule = molecule;
+                document.getElementById(molecule).classList.add('selected');
+                reactionArea.classList.add('active');
+                
+                // Reaktionsbereich aktualisieren
+                if (molecule === 'phenol') {
+                    reactionArea.innerHTML = `
+                        <div class="chemical-formula">C₆H₅─OH + NaOH → ?</div>
+                        <p style="font-size: 1.2rem; color: #546e7a;">Phenol wurde ausgewählt. Klicke auf "NaOH hinzufügen", um die Reaktion zu starten.</p>
+                    `;
+                } else {
+                    reactionArea.innerHTML = `
+                        <div class="chemical-formula">CH₃─CH₂─OH + NaOH → ?</div>
+                        <p style="font-size: 1.2rem; color: #546e7a;">Ethanol wurde ausgewählt. Klicke auf "NaOH hinzufügen", um die Reaktion zu starten.</p>
+                    `;
+                }
+                
+                // Button aktivieren
+                addNaOHButton.disabled = false;
+                explanation.style.display = 'none';
+            }
+            
+            // NaOH hinzufügen
+            addNaOHButton.addEventListener('click', function() {
+                if (!selectedMolecule) return;
+                
+                if (selectedMolecule === 'phenol') {
+                    // Phenol-Reaktion
+                    reactionArea.innerHTML = `
+                        <div class="chemical-formula">C₆H₅─OH + NaOH → C₆H₅─O⁻Na⁺ + H₂O</div>
+                        <div class="reaction-arrow">↓</div>
+                        <div class="chemical-formula success">Reaktion erfolgreich!</div>
+                        <p style="font-size: 1.2rem;">Das Wasserstoffatom der Hydroxygruppe wurde durch Natrium ersetzt, es entsteht Natriumphenolat und Wasser.</p>
+                        
+                        <div class="reaction-products">
+                            <div class="product">
+                                <div class="lewis-container" style="min-height: 200px; width: 280px;">
+                                    <svg width="280" height="200" viewBox="0 0 280 200">
+                                        <!-- Benzolring -->
+                                        <circle cx="140" cy="100" r="40" fill="none" stroke="#37474f" stroke-width="2" stroke-dasharray="6,6"/>
+                                        
+                                        <!-- Kohlenstoffatome -->
+                                        <text x="100" y="100" class="atom carbon">C</text>
+                                        <text x="125" y="65" class="atom carbon">C</text>
+                                        <text x="155" y="65" class="atom carbon">C</text>
+                                        <text x="180" y="100" class="atom carbon">C</text>
+                                        <text x="155" y="135" class="atom carbon">C</text>
+                                        <text x="125" y="135" class="atom carbon">C</text>
+                                        
+                                        <!-- Wasserstoffatome -->
+                                        <text x="75" y="100" class="atom hydrogen">H</text>
+                                        <line x1="95" y1="100" x2="80" y2="100" class="bond"/>
+                                        
+                                        <text x="125" y="45" class="atom hydrogen">H</text>
+                                        <line x1="125" y1="60" x2="125" y2="50" class="bond"/>
+                                        
+                                        <text x="155" y="45" class="atom hydrogen">H</text>
+                                        <line x1="155" y1="60" x2="155" y2="50" class="bond"/>
+                                        
+                                        <text x="200" y="100" class="atom hydrogen">H</text>
+                                        <line x1="185" y1="100" x2="195" y2="100" class="bond"/>
+                                        
+                                        <text x="155" y="155" class="atom hydrogen">H</text>
+                                        <line x1="155" y1="140" x2="155" y2="150" class="bond"/>
+                                        
+                                        <!-- O⁻Na⁺-Gruppe -->
+                                        <line x1="125" y1="135" x2="125" y2="155" class="bond"/>
+                                        <text x="125" y="170" class="atom oxygen">O</text>
+                                        <text x="125" y="185" class="charge negative">-</text>
+                                        <text x="145" y="170" class="atom sodium">Na⁺</text>
+                                        
+                                        <!-- Elektronenpaare am Sauerstoff -->
+                                        <circle cx="115" y="165" r="3" class="electron"/>
+                                        <circle cx="135" y="165" r="3" class="electron"/>
+                                    </svg>
+                                </div>
+                                <div class="product-name">Natriumphenolat (C₆H₅O⁻Na⁺)</div>
+                            </div>
+                            
+                            <div class="product">
+                                <div class="lewis-container" style="min-height: 200px; width: 180px;">
+                                    <svg width="180" height="200" viewBox="0 0 180 200">
+                                        <!-- Wasser-Molekül -->
+                                        <text x="90" y="80" class="atom oxygen">O</text>
+                                        <line x1="85" y1="85" x2="70" y2="100" class="bond"/>
+                                        <text x="60" y="105" class="atom hydrogen">H</text>
+                                        <line x1="95" y1="85" x2="110" y2="100" class="bond"/>
+                                        <text x="120" y="105" class="atom hydrogen">H</text>
+                                        
+                                        <!-- Elektronenpaare am Sauerstoff -->
+                                        <circle cx="80" y="70" r="3" class="electron"/>
+                                        <circle cx="100" y="70" r="3" class="electron"/>
+                                        <circle cx="85" y="75" r="3" class="electron"/>
+                                        <circle cx="95" y="75" r="3" class="electron"/>
+                                    </svg>
+                                </div>
+                                <div class="product-name">Wasser (H₂O)</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    explanationText.innerHTML = `
+                        <p><strong>Phenol (C₆H₅OH)</strong> reagiert mit <strong>Natriumhydroxid (NaOH)</strong> zu <strong>Natriumphenolat (C₆H₅O⁻Na⁺)</strong> und <strong>Wasser (H₂O)</strong>.</p>
+                        <p>Diese Reaktion findet statt, weil Phenol eine saure OH-Gruppe besitzt. Das Wasserstoffatom der Hydroxygruppe wird als Proton (H⁺) abgespalten und durch das Natriumion (Na⁺) ersetzt.</p>
+                        <p>Die Reaktionsgleichung lautet: C₆H₅─OH + NaOH → C₆H₅─O⁻Na⁺ + H₂O</p>
+                        <p><strong>Chemischer Hintergrund:</strong> Phenol ist sauer (pKₐ ≈ 10), weil das entstehende Phenolation durch Mesomerie mit dem Benzolring stabilisiert wird. Die negative Ladung am Sauerstoff kann über den Benzolring delokalisiert werden.</p>
+                    `;
+                    explanationText.className = 'success';
+                } else {
+                    // Ethanol-Reaktion (keine Reaktion)
+                    reactionArea.innerHTML = `
+                        <div class="chemical-formula">CH₃─CH₂─OH + NaOH → Keine Reaktion</div>
+                        <div class="reaction-arrow">↓</div>
+                        <div class="chemical-formula failure">Keine Reaktion!</div>
+                        <p style="font-size: 1.2rem;">Ethanol reagiert nicht mit Natriumhydroxid, da es sich nicht wie eine Säure verhält.</p>
+                        
+                        <div class="lewis-container" style="margin-top: 30px; min-height: 200px;">
+                            <svg width="320" height="200" viewBox="0 0 320 200">
+                                <!-- Ethanol-Molekül unverändert -->
+                                <text x="120" y="100" class="atom carbon">C</text>
+                                <text x="170" y="100" class="atom carbon">C</text>
+                                
+                                <line x1="135" y1="100" x2="155" y2="100" class="bond"/>
+                                
+                                <!-- CH3-Gruppe -->
+                                <line x1="115" y1="90" x2="100" y2="80" class="bond"/>
+                                <text x="90" y="75" class="atom hydrogen">H</text>
+                                
+                                <line x1="115" y1="110" x2="100" y2="120" class="bond"/>
+                                <text x="90" y="125" class="atom hydrogen">H</text>
+                                
+                                <line x1="125" y1="115" x2="125" y2="135" class="bond"/>
+                                <text x="125" y="145" class="atom hydrogen">H</text>
+                                
+                                <!-- CH2-Gruppe -->
+                                <line x1="170" y1="90" x2="170" y2="75" class="bond"/>
+                                <text x="170" y="65" class="atom hydrogen">H</text>
+                                
+                                <line x1="170" y1="110" x2="170" y2="125" class="bond"/>
+                                <text x="170" y="135" class="atom hydrogen">H</text>
+                                
+                                <!-- OH-Gruppe -->
+                                <line x1="185" y1="100" x2="205" y2="100" class="bond"/>
+                                <text x="215" y="100" class="atom oxygen">O</text>
+                                <line x1="220" y1="100" x2="235" y2="100" class="bond"/>
+                                <text x="245" y="100" class="atom hydrogen">H</text>
+                                
+                                <!-- Elektronenpaare am Sauerstoff -->
+                                <circle cx="210" y="90" r="3" class="electron"/>
+                                <circle cx="210" y="110" r="3" class="electron"/>
+                                
+                                <!-- "Keine Reaktion" Hinweis -->
+                                <text x="160" y="180" style="font-size: 24px; fill: #c62828; font-weight: bold; text-anchor: middle;">Keine Reaktion!</text>
+                            </svg>
+                        </div>
+                    `;
+                    
+                    explanationText.innerHTML = `
+                        <p><strong>Ethanol (CH₃CH₂OH)</strong> reagiert <strong>nicht</strong> mit <strong>Natriumhydroxid (NaOH)</strong>.</p>
+                        <p>Im Gegensatz zu Phenol ist Ethanol keine Säure. Die OH-Gruppe in Ethanol ist nicht sauer genug, um mit NaOH zu reagieren.</p>
+                        <p>Während Phenol einen pKₐ-Wert von etwa 10 hat (leicht sauer), hat Ethanol einen pKₐ-Wert von etwa 16 und verhält sich damit nicht sauer genug, um mit NaOH zu reagieren.</p>
+                        <p><strong>Chemischer Hintergrund:</strong> Das Alkoholat-Ion von Ethanol wird nicht durch Resonanz stabilisiert, daher ist Ethanol eine viel schwächere Säure als Phenol.</p>
+                    `;
+                    explanationText.className = 'failure';
+                }
+                
+                explanation.style.display = 'block';
+                addNaOHButton.disabled = true;
+            });
+            
+            // Reset-Button
+            resetButton.addEventListener('click', function() {
+                phenol.classList.remove('selected');
+                ethanol.classList.remove('selected');
+                selectedMolecule = null;
+                reactionArea.classList.remove('active');
+                reactionArea.innerHTML = '<p style="font-size: 1.2rem; color: #546e7a;">Wähle eine Verbindung aus, um die Reaktion mit NaOH zu starten</p>';
+                addNaOHButton.disabled = true;
+                explanation.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
