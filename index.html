@@ -288,80 +288,172 @@
 
     function showPhenolReaction() {
       reactionDisplay.innerHTML = `
-        <div class="reaction-display">
-          <div class="reaction-molecule">
-            <svg width="120" height="120" viewBox="0 0 200 150">
-              <polygon points="100,40 130,55 130,85 100,100 70,85 70,55" fill="none" stroke="black" stroke-width="2.5"/>
-              <line x1="103" y1="45" x2="125" y2="58" stroke="black" stroke-width="2"/>
-              <line x1="125" y1="82" x2="103" y2="95" stroke="black" stroke-width="2"/>
-              <line x1="75" y1="58" x2="75" y2="82" stroke="black" stroke-width="2"/>
-              <line x1="100" y1="40" x2="100" y2="20" stroke="black" stroke-width="2"/>
-              <circle cx="100" cy="15" r="8" fill="#ff4444" stroke="black" stroke-width="1.5"/>
-              <text x="100" y="19" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
-              <line x1="107" y1="12" x2="117" y2="7" stroke="black" stroke-width="2"/>
-              <circle cx="121" cy="4" r="8" fill="#f56565" stroke="black" stroke-width="1.5" class="highlight-h"/>
-              <text x="121" y="8" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
-            </svg>
-            <div class="molecule-label">Phenol</div>
-          </div>
+        <div id="animation-container" style="position: relative; width: 100%; min-height: 400px;">
+          <svg id="reaction-svg" width="100%" height="400" viewBox="0 0 800 400">
+            <!-- Phenol (links) -->
+            <g id="phenol-group">
+              <polygon points="100,140 130,155 130,185 100,200 70,185 70,155" fill="none" stroke="black" stroke-width="2.5"/>
+              <line x1="103" y1="145" x2="125" y2="158" stroke="black" stroke-width="2"/>
+              <line x1="125" y1="182" x2="103" y2="195" stroke="black" stroke-width="2"/>
+              <line x1="75" y1="158" x2="75" y2="182" stroke="black" stroke-width="2"/>
+              <line x1="100" y1="140" x2="100" y2="120" stroke="black" stroke-width="2"/>
+              <circle cx="100" cy="115" r="8" fill="#ff4444" stroke="black" stroke-width="1.5"/>
+              <text x="100" y="119" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
+              <line id="h-bond" x1="107" y1="112" x2="117" y2="107" stroke="black" stroke-width="2"/>
+              <circle id="h-atom" cx="121" cy="104" r="8" fill="#4444ff" stroke="black" stroke-width="1.5"/>
+              <text id="h-text" x="121" y="108" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
+              <text x="100" y="230" font-size="14" font-weight="bold" text-anchor="middle" fill="#2d3748">Phenol</text>
+            </g>
+            
+            <!-- NaOH (mitte-links) -->
+            <g id="naoh-group">
+              <circle id="na-atom" cx="250" cy="170" r="15" fill="#9b59b6" stroke="black" stroke-width="1.5"/>
+              <text id="na-text" x="250" y="175" font-size="14" font-weight="bold" text-anchor="middle" fill="white">Na</text>
+              <circle id="oh-o-atom" cx="295" cy="170" r="12" fill="#ff4444" stroke="black" stroke-width="1.5"/>
+              <text id="oh-o-text" x="295" y="174" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
+              <circle id="oh-h-atom" cx="320" cy="170" r="10" fill="#4444ff" stroke="black" stroke-width="1.5"/>
+              <text id="oh-h-text" x="320" y="174" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
+              <line id="naoh-bond1" x1="265" y1="170" x2="283" y2="170" stroke="black" stroke-width="2"/>
+              <line id="naoh-bond2" x1="307" y1="170" x2="310" y2="170" stroke="black" stroke-width="2"/>
+              <text x="285" y="210" font-size="14" font-weight="bold" text-anchor="middle" fill="#2d3748">NaOH</text>
+            </g>
+            
+            <!-- Pfeil -->
+            <text x="400" y="180" font-size="40" font-weight="bold" text-anchor="middle" fill="#48bb78">→</text>
+            
+            <!-- Natriumphenolat (rechts) -->
+            <g id="product-phenolat" opacity="0">
+              <polygon points="550,140 580,155 580,185 550,200 520,185 520,155" fill="none" stroke="black" stroke-width="2.5"/>
+              <line x1="553" y1="145" x2="575" y2="158" stroke="black" stroke-width="2"/>
+              <line x1="575" y1="182" x2="553" y2="195" stroke="black" stroke-width="2"/>
+              <line x1="525" y1="158" x2="525" y2="182" stroke="black" stroke-width="2"/>
+              <line x1="550" y1="140" x2="550" y2="120" stroke="black" stroke-width="2"/>
+              <circle cx="550" cy="115" r="8" fill="#ff4444" stroke="black" stroke-width="1.5"/>
+              <text x="550" y="119" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
+              <line x1="557" y1="112" x2="567" y2="107" stroke="black" stroke-width="2"/>
+              <circle cx="571" cy="104" r="8" fill="#9b59b6" stroke="black" stroke-width="1.5"/>
+              <text x="571" y="108" font-size="10" font-weight="bold" text-anchor="middle" fill="white">Na</text>
+              <text x="550" y="230" font-size="12" font-weight="bold" text-anchor="middle" fill="#2d3748">Natriumphenolat</text>
+            </g>
+            
+            <!-- Wasser (ganz rechts) -->
+            <g id="product-water" opacity="0">
+              <circle cx="680" cy="160" r="10" fill="#4444ff" stroke="black" stroke-width="1.5"/>
+              <text x="680" y="164" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
+              <circle cx="700" cy="170" r="12" fill="#ff4444" stroke="black" stroke-width="1.5"/>
+              <text x="700" y="174" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
+              <circle cx="720" cy="180" r="10" fill="#4444ff" stroke="black" stroke-width="1.5"/>
+              <text x="720" y="184" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
+              <line x1="690" y1="164" x2="688" y2="166" stroke="black" stroke-width="2"/>
+              <line x1="712" y1="174" x2="710" y2="176" stroke="black" stroke-width="2"/>
+              <text x="700" y="210" font-size="12" font-weight="bold" text-anchor="middle" fill="#2d3748">Wasser (H₂O)</text>
+            </g>
+            
+            <!-- Plus Zeichen -->
+            <text id="plus-sign" x="630" y="180" font-size="30" font-weight="bold" text-anchor="middle" fill="#4a5568" opacity="0">+</text>
+          </svg>
           
-          <div class="reaction-symbol">+</div>
-          
-          <div class="reaction-molecule">
-            <svg width="80" height="80" viewBox="0 0 100 100">
-              <circle cx="30" cy="50" r="15" fill="#9b59b6" stroke="black" stroke-width="1.5"/>
-              <text x="30" y="55" font-size="14" font-weight="bold" text-anchor="middle" fill="white">Na</text>
-              <circle cx="65" cy="50" r="12" fill="#ff4444" stroke="black" stroke-width="1.5"/>
-              <text x="65" y="54" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
-              <circle cx="85" cy="50" r="10" fill="#4444ff" stroke="black" stroke-width="1.5"/>
-              <text x="85" y="54" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
-              <line x1="44" y1="50" x2="53" y2="50" stroke="black" stroke-width="2"/>
-              <line x1="77" y1="50" x2="75" y2="50" stroke="black" stroke-width="2"/>
-            </svg>
-            <div class="molecule-label">NaOH</div>
-          </div>
-          
-          <div class="arrow">→</div>
-          
-          <div class="reaction-molecule">
-            <svg width="120" height="120" viewBox="0 0 200 150">
-              <polygon points="100,40 130,55 130,85 100,100 70,85 70,55" fill="none" stroke="black" stroke-width="2.5"/>
-              <line x1="103" y1="45" x2="125" y2="58" stroke="black" stroke-width="2"/>
-              <line x1="125" y1="82" x2="103" y2="95" stroke="black" stroke-width="2"/>
-              <line x1="75" y1="58" x2="75" y2="82" stroke="black" stroke-width="2"/>
-              <line x1="100" y1="40" x2="100" y2="20" stroke="black" stroke-width="2"/>
-              <circle cx="100" cy="15" r="8" fill="#ff4444" stroke="black" stroke-width="1.5"/>
-              <text x="100" y="19" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
-              <line x1="107" y1="12" x2="117" y2="7" stroke="black" stroke-width="2"/>
-              <circle cx="121" cy="4" r="8" fill="#9b59b6" stroke="black" stroke-width="1.5"/>
-              <text x="121" y="8" font-size="10" font-weight="bold" text-anchor="middle" fill="white">Na</text>
-            </svg>
-            <div class="molecule-label">Natriumphenolat</div>
-          </div>
-          
-          <div class="reaction-symbol">+</div>
-          
-          <div class="reaction-molecule">
-            <svg width="80" height="80" viewBox="0 0 100 100">
-              <circle cx="40" cy="50" r="10" fill="#4444ff" stroke="black" stroke-width="1.5"/>
-              <text x="40" y="54" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
-              <circle cx="60" cy="50" r="12" fill="#ff4444" stroke="black" stroke-width="1.5"/>
-              <text x="60" y="54" font-size="12" font-weight="bold" text-anchor="middle" fill="white">O</text>
-              <circle cx="80" cy="50" r="10" fill="#4444ff" stroke="black" stroke-width="1.5"/>
-              <text x="80" y="54" font-size="10" font-weight="bold" text-anchor="middle" fill="white">H</text>
-              <line x1="50" y1="50" x2="48" y2="50" stroke="black" stroke-width="2"/>
-              <line x1="72" y1="50" x2="70" y2="50" stroke="black" stroke-width="2"/>
-            </svg>
-            <div class="molecule-label">Wasser (H₂O)</div>
-          </div>
+          <div id="step-description" style="text-align: center; margin-top: 20px; font-size: 18px; font-weight: 600; color: #2d3748; min-height: 30px;"></div>
         </div>
         
-        <div class="message success">
+        <div class="message success" style="margin-top: 20px;">
           ✓ Reaktion erfolgreich! Das H-Atom der OH-Gruppe wurde durch Na⁺ ersetzt. Phenol ist sauer genug, um mit der starken Base NaOH zu reagieren.
         </div>
         
         <button class="reset-btn" onclick="resetGame()">Neue Reaktion</button>
       `;
+      
+      // Animation starten
+      setTimeout(() => animatePhenolReaction(), 500);
+    }
+    
+    function animatePhenolReaction() {
+      const stepDesc = document.getElementById('step-description');
+      const hAtom = document.getElementById('h-atom');
+      const hText = document.getElementById('h-text');
+      const hBond = document.getElementById('h-bond');
+      const naAtom = document.getElementById('na-atom');
+      const naText = document.getElementById('na-text');
+      const naohBond1 = document.getElementById('naoh-bond1');
+      const ohOAtom = document.getElementById('oh-o-atom');
+      const ohOText = document.getElementById('oh-o-text');
+      const ohHAtom = document.getElementById('oh-h-atom');
+      const ohHText = document.getElementById('oh-h-text');
+      const naohBond2 = document.getElementById('naoh-bond2');
+      
+      // Schritt 1: H wird abgespalten (1s)
+      stepDesc.textContent = 'Schritt 1: H⁺ wird vom Phenol abgespalten';
+      setTimeout(() => {
+        hBond.style.transition = 'opacity 0.5s';
+        hBond.style.opacity = '0';
+        hAtom.style.transition = 'all 1s ease-in-out';
+        hText.style.transition = 'all 1s ease-in-out';
+        hAtom.setAttribute('cx', '200');
+        hAtom.setAttribute('cy', '80');
+        hText.setAttribute('x', '200');
+        hText.setAttribute('y', '84');
+        
+        // Schritt 2: Na⁺ bewegt sich zu Phenol (nach 1.5s)
+        setTimeout(() => {
+          stepDesc.textContent = 'Schritt 2: Na⁺ nimmt den Platz von H ein';
+          naohBond1.style.transition = 'opacity 0.5s';
+          naohBond1.style.opacity = '0';
+          naAtom.style.transition = 'all 1.5s ease-in-out';
+          naText.style.transition = 'all 1.5s ease-in-out';
+          naAtom.setAttribute('cx', '121');
+          naAtom.setAttribute('cy', '104');
+          naAtom.setAttribute('r', '8');
+          naText.setAttribute('x', '121');
+          naText.setAttribute('y', '108');
+          naText.setAttribute('font-size', '10');
+          
+          // Schritt 3: H⁺ und OH⁻ bilden Wasser (nach 2s)
+          setTimeout(() => {
+            stepDesc.textContent = 'Schritt 3: H⁺ und OH⁻ verbinden sich zu Wasser';
+            naohBond2.style.transition = 'opacity 0.5s';
+            naohBond2.style.opacity = '0';
+            
+            hAtom.style.transition = 'all 1.5s ease-in-out';
+            hText.style.transition = 'all 1.5s ease-in-out';
+            hAtom.setAttribute('cx', '680');
+            hAtom.setAttribute('cy', '160');
+            hText.setAttribute('x', '680');
+            hText.setAttribute('y', '164');
+            
+            ohOAtom.style.transition = 'all 1.5s ease-in-out';
+            ohOText.style.transition = 'all 1.5s ease-in-out';
+            ohHAtom.style.transition = 'all 1.5s ease-in-out';
+            ohHText.style.transition = 'all 1.5s ease-in-out';
+            
+            ohOAtom.setAttribute('cx', '700');
+            ohOAtom.setAttribute('cy', '170');
+            ohOText.setAttribute('x', '700');
+            ohOText.setAttribute('y', '174');
+            
+            ohHAtom.setAttribute('cx', '720');
+            ohHAtom.setAttribute('cy', '180');
+            ohHText.setAttribute('x', '720');
+            ohHText.setAttribute('y', '184');
+            
+            // Produkte einblenden (nach 2s)
+            setTimeout(() => {
+              stepDesc.textContent = 'Fertig! Natriumphenolat und Wasser sind entstanden';
+              document.getElementById('product-phenolat').style.transition = 'opacity 1s';
+              document.getElementById('product-phenolat').style.opacity = '1';
+              document.getElementById('product-water').style.transition = 'opacity 1s';
+              document.getElementById('product-water').style.opacity = '1';
+              document.getElementById('plus-sign').style.transition = 'opacity 1s';
+              document.getElementById('plus-sign').style.opacity = '1';
+              
+              // Edukte ausblenden
+              document.getElementById('phenol-group').style.transition = 'opacity 1s';
+              document.getElementById('phenol-group').style.opacity = '0.2';
+              document.getElementById('naoh-group').style.transition = 'opacity 1s';
+              document.getElementById('naoh-group').style.opacity = '0.2';
+            }, 2000);
+          }, 2000);
+        }, 1500);
+      }, 1000);
     }
 
     function showEthanolReaction() {
@@ -498,5 +590,5 @@
       });
     }
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a48b664a42be505',t:'MTc2NDE1MzA0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a48bfc6f71be505',t:'MTc2NDE1MzQzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
